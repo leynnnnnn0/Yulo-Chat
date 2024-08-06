@@ -2,8 +2,8 @@
     <section>
         <x-profile/>
     </section>
-    <section class="leading-none">
-        <x-sub-heading>Jashreil Alm</x-sub-heading>
+    <section class="flex flex-col">
+        <x-sub-heading>{{ $slot }}</x-sub-heading>
         <x-span>Lorem ipsum dolor sit amet.</x-span>
     </section>
 </div>

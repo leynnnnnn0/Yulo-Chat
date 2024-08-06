@@ -6,7 +6,36 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"
+             x-data="{
+                newMessages: [],
+                authId: {{ Auth::id() }}
+             }"
+             x-init="
+                const channel = Echo.private('chat')
+
+                channel.listenForWhisper('send', (event) => {
+                    newMessages.push(event);
+                    console.log(newMessages);
+                })
+                const sendMessage = document.getElementById('sendMessage');
+                sendMessage.addEventListener('keydown', (e) => {
+
+                     if (e.key === 'Enter') {
+                        e.preventDefault();
+                        channel.whisper('send', {
+                            user_id: {{ Auth::id() }},
+                            message: sendMessage.value,
+                        })
+                        newMessages.push({
+                            user_id: {{ Auth::id() }},
+                            message: sendMessage.value,
+                        });
+                        sendMessage.value = '';
+                    }
+
+                })
+             ">
             <div class="bg-primary overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="flex bg-white/5 h-[700px] text-gray-900 w-full">
                     {{-- Left Section--}}
@@ -14,7 +43,7 @@
                         {{--About User--}}
                         <div class="flex items-center gap-3">
                             <x-profile/>
-                            <x-header>John Doe</x-header>
+                            <x-header>{{ Auth::user()->name }}</x-header>
                         </div>
                         {{--Search Bar--}}
                         <div class="flex items-center gap-3">
@@ -25,9 +54,7 @@
                             <x-sub-heading>All Users</x-sub-heading>
                             {{-- Chats --}}
                             <div class="h-auto">
-                                <x-user-chat/>
-                                <x-user-chat/>
-                                <x-user-chat/>
+                                <x-user-chat>Joh Doe</x-user-chat>
                             </div>
                         </div>
                     </section>
@@ -39,7 +66,7 @@
                                 <x-profile/>
                             </section>
                             <section class="flex flex-col flex-1">
-                                <x-header>Jashreil Alm</x-header>
+                                <x-header>{{ $chatMate->name }}</x-header>
                                 <x-span>Active Now</x-span>
                             </section>
                             <section class="flex items-center gap-2">
@@ -48,17 +75,30 @@
                             </section>
                         </div>
                         {{-- Second Section--}}
-                        <div class="space-y-4 flex-1 py-5">
-                            <x-right-chat/>
-                            <x-left-chat/>
-                            <x-right-chat/>
-                            <x-left-chat/>
+                        <div class="space-y-4 flex-1 py-5 overflow-y-auto">
+                            @foreach($messages as $message)
+                                @if($message->user_id !== Auth::id())
+                                    <x-left-chat>{{ $message->message }}</x-left-chat>
+                                @else
+                                    <x-right-chat>{{ $message->message }}</x-right-chat>
+                                @endif
+                            @endforeach
+                                <template x-for="message in newMessages">
+                                    <div>
+                                        <template x-if="message.user_id == authId">
+                                            <x-right-chat><span x-text="message.message"></span></x-right-chat>
+                                        </template>
+                                        <template x-if="message.user_id != authId">
+                                            <x-left-chat><span x-text="message.message"></span></x-left-chat>
+                                        </template>
+                                    </div>
+                                </template>
 
                         </div>
                         {{-- Third Section--}}
-                        <div class="h-auto">
-                            <input type="text" class="h-14 rounded-lg bg-white/5 w-full border-none" placeholder="Type a message">
-                        </div>
+                        <form id="messageForm" class="h-auto">
+                            <input id="sendMessage" name="message" type="text" class="h-14 rounded-lg text-white bg-white/5 w-full border-none" placeholder="Type a message">
+                        </form>
                     </section>
 
                 </div>
