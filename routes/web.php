@@ -12,9 +12,9 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth'])->name('dashboard');
 
-Route::get('/dashboard/{id}', [MessageController::class, 'index', 'id'])->middleware(['auth', 'verified']);
+Route::get('/dashboard/{id}', [MessageController::class, 'index', 'id'])->middleware(['auth']);
 Route::get('/broadcast', function(){
     broadcast(new Message(UserMessage::find(11)));
 });

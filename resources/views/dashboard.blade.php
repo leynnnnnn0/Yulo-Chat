@@ -9,9 +9,25 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8"
              x-data="{
                 newMessages: [],
-                authId: {{ Auth::id() }}
+                authId: {{ Auth::id() }},
+                activeUsers: []
              }"
              x-init="
+                // Active users
+                    Echo.join('room')
+                    .here(users => {
+                         activeUsers = users
+                    })
+                    .joining(user => {
+                        const isExisting = activeUsers.some(obj => obj.name === user.name);
+                        if(!isExisting){
+                            activeUsers.push(user);
+                        }
+                    })
+                    .leaving(user => {
+                        activeUsers = activeUsers.filter(u => u.id !== user.id)
+                    })
+
                 const channel = Echo.private('chat')
 
                 channel.listenForWhisper('send', (event) => {
@@ -33,7 +49,6 @@
                         });
                         sendMessage.value = '';
                     }
-
                 })
              ">
             <div class="bg-primary overflow-hidden shadow-sm sm:rounded-lg">
@@ -51,10 +66,14 @@
                         </div>
                         {{--Online--}}
                         <div class="h-auto space-y-4">
-                            <x-sub-heading>All Users</x-sub-heading>
+                            <x-sub-heading>Active Users</x-sub-heading>
                             {{-- Chats --}}
                             <div class="h-auto">
-                                <x-user-chat>Joh Doe</x-user-chat>
+                                <template x-for="user in activeUsers">
+                                    <template x-if="user.id != authId">
+                                        <x-user-chat><span x-text="user.name"></span></x-user-chat>
+                                    </template>
+                                </template>
                             </div>
                         </div>
                     </section>

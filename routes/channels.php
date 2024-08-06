@@ -10,3 +10,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('chat', function(){
     return true;
 });
+
+Broadcast::channel('room', function (User $user) {
+    return $user->only('id', 'name');
+});
